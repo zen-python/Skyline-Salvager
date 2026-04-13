@@ -15,6 +15,7 @@ const TELEGRAPH_CRITICAL = "critical"
 @export var stress_warning_color: Color = Color(1.0, 0.78, 0.31)
 @export var stress_critical_color: Color = Color(1.0, 0.42, 0.42)
 
+@onready var playfield = $Playfield
 @onready var status_label: Label = $CanvasLayer/StatusLabel
 @onready var stress_label: Label = $CanvasLayer/StressPanel/StressLabel
 
@@ -39,6 +40,7 @@ func _ready() -> void:
 	salvage_beam.pull_step_completed.connect(_on_pull_step_completed)
 	salvage_beam.pull_failed.connect(_on_pull_failed)
 	_spawn_demo_crates()
+	_sync_playfield()
 	_refresh_stress_telegraph()
 	_refresh_status("Ready. Press [L] to lock, [Space] to pull, [K] to destroy the target, [Esc] to clear.")
 
@@ -65,6 +67,8 @@ func _spawn_demo_crates() -> void:
 		SalvageCrateScript.new("crate_a", Vector2i(3, 0)),
 		SalvageCrateScript.new("crate_b", Vector2i(2, 2)),
 	]
+	for crate in salvage_crates:
+		_bind_crate(crate)
 
 
 func _current_crate():
@@ -81,12 +85,14 @@ func _lock_selected_crate() -> void:
 
 	if salvage_beam.try_lock_on(crate):
 		_refresh_status("Locked %s at %s." % [crate.crate_id, crate.grid_position])
+		_sync_playfield()
 
 
 func _pull_selected_crate() -> void:
 	if salvage_beam.state != STATE_PULLING:
 		if not salvage_beam.activate_beam():
 			return
+		_sync_playfield()
 
 	salvage_beam.tick_pull()
 
@@ -98,27 +104,34 @@ func _destroy_selected_crate() -> void:
 
 	crate.destroy()
 	_refresh_status("Destroyed %s to simulate collapse invalidation." % crate.crate_id)
+	_sync_playfield()
 
 
 func _on_lock_acquired(crate) -> void:
 	_refresh_status("Beam locked on %s at %s." % [crate.crate_id, crate.grid_position])
+	_sync_playfield()
 
 
 func _on_lock_cleared(reason: String) -> void:
 	_refresh_status("Beam returned to idle: %s." % reason)
+	_sync_playfield()
 
 
 func _on_pull_started(crate) -> void:
 	_refresh_status("Pull started for %s." % crate.crate_id)
+	_sync_playfield()
 
 
 func _on_pull_step_completed(crate, from_tile: Vector2i, to_tile: Vector2i) -> void:
 	var stress = salvage_grid.get_stress(to_tile)
 	_refresh_status("Pulled %s from %s to %s. Stress at tile is now %d." % [crate.crate_id, from_tile, to_tile, stress])
+	playfield.flash_pull_step(from_tile, to_tile)
+	_sync_playfield()
 
 
 func _on_pull_failed(reason: String) -> void:
 	_refresh_status("Pull failed: %s." % reason)
+	_sync_playfield()
 
 
 func _refresh_status(message: String) -> void:
@@ -141,6 +154,8 @@ func _on_grid_stress_applied(tile: Vector2i, previous_value: int, new_value: int
 	telegraph_stress = new_value
 	has_telegraph_tile = true
 	telegraph_state = _get_telegraph_state(new_value)
+	playfield.push_stress_pulse(tile, new_value, telegraph_state)
+	_sync_playfield()
 	_refresh_stress_telegraph()
 
 
@@ -186,3 +201,64 @@ func _get_telegraph_color() -> Color:
 
 func _format_tile(tile: Vector2i) -> String:
 	return "[%d, %d]" % [tile.x, tile.y]
+
+
+func _bind_crate(crate) -> void:
+	var moved_callback := Callable(self, "_on_crate_moved")
+	if not crate.moved.is_connected(moved_callback):
+		crate.moved.connect(moved_callback)
+
+	var destroyed_callback := Callable(self, "_on_crate_destroyed")
+	if not crate.destroyed.is_connected(destroyed_callback):
+		crate.destroyed.connect(destroyed_callback)
+
+
+func _on_crate_moved(crate, from_tile: Vector2i, to_tile: Vector2i) -> void:
+	_sync_playfield()
+
+
+func _on_crate_destroyed(crate) -> void:
+	_sync_playfield()
+
+
+func _sync_playfield() -> void:
+	var target_tile = null
+	if salvage_beam != null and salvage_beam.target_crate != null and not salvage_beam.target_crate.is_destroyed:
+		target_tile = salvage_beam.target_crate.grid_position
+
+	playfield.update_state({
+		"rig_tile": salvage_beam.rig_grid_position if salvage_beam != null else Vector2i.ZERO,
+		"beam_state": salvage_beam.state if salvage_beam != null else TELEGRAPH_IDLE,
+		"selected_tile": _current_crate().grid_position if _current_crate() != null else null,
+		"target_tile": target_tile,
+		"warning_threshold": warning_threshold,
+		"collapse_threshold": collapse_threshold,
+		"crates": _get_crate_snapshot(),
+		"stress_tiles": _get_stress_snapshot(),
+	})
+
+
+func _get_crate_snapshot() -> Array[Dictionary]:
+	var snapshot: Array[Dictionary] = []
+	for index in range(salvage_crates.size()):
+		var crate = salvage_crates[index]
+		snapshot.append({
+			"id": crate.crate_id,
+			"tile": crate.grid_position,
+			"destroyed": crate.is_destroyed,
+			"selected": index == selected_crate_index,
+		})
+	return snapshot
+
+
+func _get_stress_snapshot() -> Array[Dictionary]:
+	var snapshot: Array[Dictionary] = []
+	if salvage_grid == null:
+		return snapshot
+
+	for tile in salvage_grid.stress_by_tile.keys():
+		snapshot.append({
+			"tile": tile,
+			"value": salvage_grid.stress_by_tile[tile],
+		})
+	return snapshot
