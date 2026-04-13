@@ -11,16 +11,16 @@ const STATE_IDLE := "idle"
 const STATE_LOCKED := "locked"
 const STATE_PULLING := "pulling"
 
-var salvage_grid: SalvageGrid
+var salvage_grid = null
 var rig_grid_position: Vector2i = Vector2i.ZERO
 var max_range: int = 4
 var pull_strength: int = 1
 var state: String = STATE_IDLE
-var target_crate: SalvageCrate = null
+var target_crate = null
 var last_failure_reason: String = ""
 
 
-func configure(grid: SalvageGrid, rig_tile: Vector2i = Vector2i.ZERO) -> void:
+func configure(grid, rig_tile: Vector2i = Vector2i.ZERO) -> void:
 	salvage_grid = grid
 	rig_grid_position = rig_tile
 
@@ -33,7 +33,7 @@ func has_target() -> bool:
 	return target_crate != null and not target_crate.is_destroyed
 
 
-func try_lock_on(crate: SalvageCrate) -> bool:
+func try_lock_on(crate) -> bool:
 	if crate == null:
 		return _reject_target("no_target")
 	if not crate.is_pullable():
@@ -67,7 +67,7 @@ func tick_pull() -> bool:
 		pull_failed.emit("target_destroyed")
 		return false
 
-	var from_tile := target_crate.grid_position
+	var from_tile = target_crate.grid_position
 	var to_tile := _next_step_toward_rig(from_tile)
 	if to_tile == from_tile:
 		clear_lock("target_already_aligned")
@@ -102,7 +102,7 @@ func _reject_target(reason: String) -> bool:
 	return false
 
 
-func _bind_target(crate: SalvageCrate) -> void:
+func _bind_target(crate) -> void:
 	var destroyed_callback := Callable(self, "_on_target_destroyed")
 	if not crate.destroyed.is_connected(destroyed_callback):
 		crate.destroyed.connect(destroyed_callback)
@@ -117,7 +117,7 @@ func _unbind_target() -> void:
 		target_crate.destroyed.disconnect(destroyed_callback)
 
 
-func _on_target_destroyed(crate: SalvageCrate) -> void:
+func _on_target_destroyed(crate) -> void:
 	if crate != target_crate:
 		return
 

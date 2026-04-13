@@ -66,6 +66,7 @@ Review result:
 Outputs:
 
 - `tests/unit/salvage/salvage_beam_test.gd`
+- `tests/runtime/story_001_runtime_check.gd`
 - `production/qa/test-evidence/story-001-magnetic-crate-pull.md`
 - `production/qa/smoke-2026-04-13.md`
 
@@ -75,6 +76,9 @@ Verification run in this environment:
 - `bash scripts/dev-gate.sh`
 - `bash scripts/qa-gate.sh`
 - `bash scripts/release-gate.sh`
+- `godot --headless --path . --quit`
+- `godot --headless --path . --scene res://scenes/PrototypeMain.tscn --quit-after 5`
+- `godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd`
 
 ## Current State
 

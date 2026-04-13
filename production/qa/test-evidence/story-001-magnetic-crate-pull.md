@@ -17,6 +17,11 @@ Covered scenarios:
 - stress event emission on completed pull step
 - target destruction clearing the active lock state
 
+Engine-executed runtime check:
+
+- `godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd`
+- result: `RUNTIME CHECK PASS: Story 001 magnetic crate pull`
+
 ## Manual Smoke Notes
 
 Scene:
@@ -34,3 +39,4 @@ Manual interactions represented by the prototype scene:
 
 - logic acceptance criteria covered
 - bug reproduction path from BUG-0001 covered by the target-destruction case
+- headless Godot runtime execution completed successfully
