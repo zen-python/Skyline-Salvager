@@ -13,3 +13,17 @@ offset_top = 24.0
 offset_right = 1040.0
 offset_bottom = 180.0
 text = "Skyline Salvager Prototype"
+
+[node name="StressPanel" type="PanelContainer" parent="CanvasLayer"]
+offset_left = 24.0
+offset_top = 204.0
+offset_right = 368.0
+offset_bottom = 332.0
+
+[node name="StressLabel" type="Label" parent="CanvasLayer/StressPanel"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 320.0
+offset_bottom = 108.0
+text = "Rooftop Stress"
+autowrap_mode = 2
