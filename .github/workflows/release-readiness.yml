@@ -23,6 +23,7 @@ jobs:
         with:
           version: 4.6.2
           use-dotnet: false
+          include-templates: true
 
       - name: Verify release gates
         run: |
@@ -33,3 +34,4 @@ jobs:
           godot --headless --path . --scene res://scenes/PrototypeMain.tscn --quit-after 5
           godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd
           godot --headless --path . --script res://tests/runtime/story_002_runtime_check.gd
+          bash scripts/build-linux-arm64.sh

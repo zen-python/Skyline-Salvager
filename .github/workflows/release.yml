@@ -35,6 +35,7 @@ jobs:
         with:
           version: 4.6.2
           use-dotnet: false
+          include-templates: true
 
       - name: Validate release candidate
         run: |
@@ -46,6 +47,7 @@ jobs:
           godot --headless --path . --scene res://scenes/PrototypeMain.tscn --quit-after 5
           godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd
           godot --headless --path . --script res://tests/runtime/story_002_runtime_check.gd
+          bash scripts/build-linux-arm64.sh
 
       - name: Compute next version
         id: version
@@ -110,4 +112,6 @@ jobs:
           gh release create "$NEXT_TAG" \
             --title "$NEXT_TAG" \
             --generate-notes \
+            build/linux/arm64/skyline-salvager-linux-arm64.tar.gz \
+            build/linux/arm64/skyline-salvager-linux-arm64.tar.gz.sha256 \
             $prerelease_flag

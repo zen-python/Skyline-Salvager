@@ -21,6 +21,18 @@ launch_checklist=$(ls -t "$ROOT"/production/releases/launch-checklist-*.md 2>/de
 [ -n "$release_checklist" ] && pass "release checklist found: ${release_checklist#$ROOT/}" || warn "release checklist missing"
 [ -n "$launch_checklist" ] && pass "launch checklist found: ${launch_checklist#$ROOT/}" || warn "launch checklist missing"
 
+if [ -f "$ROOT/export_presets.cfg" ]; then
+  pass "export presets found: export_presets.cfg"
+else
+  warn "export presets missing"
+fi
+
+if [ -x "$ROOT/scripts/build-linux-arm64.sh" ]; then
+  pass "Linux arm64 build script found: scripts/build-linux-arm64.sh"
+else
+  warn "Linux arm64 build script missing or not executable"
+fi
+
 s1_count=0
 s2_count=0
 if [ -d "$ROOT/production/qa/bugs" ]; then
