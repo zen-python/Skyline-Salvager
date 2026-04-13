@@ -3,13 +3,13 @@
 Skyline Salvager is a Godot 4.6 prototype repo that uses the Codex game-studio
 operating layer directly inside a real project.
 
-The current implemented vertical slice is Story 001: magnetic crate pull. It
-includes:
+The current implemented vertical slice covers Story 001: magnetic crate pull
+and Story 002: rooftop stress telegraph. It includes:
 
 - project-level Codex workflow docs
 - the copied studio playbooks, role cards, and validation scripts
 - real gameplay code for beam lock-on, pull ticks, crate state, and grid stress
-- a minimal prototype scene for smoke testing
+- a playable prototype scene with rooftop stress telegraph feedback
 - test and review artifacts showing the story flow from readiness to done
 
 ## Quick Start
@@ -18,7 +18,7 @@ includes:
 2. Read `AGENTS.md` and `docs/USAGE.md`.
 3. Run `bash scripts/session-start.sh`.
 4. Start from `docs/WORKFLOW-TRACE.md` if you want the exercised end-to-end flow.
-5. Inspect `production/epics/salvage/story-001-magnetic-crate-pull.md` and the files in `production/reviews/`.
+5. Inspect `production/epics/salvage/` and the files in `production/reviews/`.
 
 ## Project Stack
 
@@ -36,13 +36,18 @@ includes:
 - `src/gameplay/salvage_grid.gd`
 - `src/gameplay/prototype_main.gd`
 - `tests/unit/salvage/salvage_beam_test.gd`
+- `tests/runtime/story_002_runtime_check.gd`
 
 ## Workflow Evidence
 
 - `production/reviews/story-001-readiness.md`
 - `production/reviews/story-001-code-review.md`
 - `production/reviews/story-001-done.md`
+- `production/reviews/story-002-readiness.md`
+- `production/reviews/story-002-code-review.md`
+- `production/reviews/story-002-done.md`
 - `production/qa/test-evidence/story-001-magnetic-crate-pull.md`
+- `production/qa/test-evidence/story-002-rooftop-stress-telegraph.md`
 - `production/qa/smoke-2026-04-13.md`
 
 ## GitHub Automation

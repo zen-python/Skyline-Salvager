@@ -1,0 +1,113 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Semantic version bump to publish
+        required: true
+        default: minor
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: Publish as a prerelease
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.6.2
+          use-dotnet: false
+
+      - name: Validate release candidate
+        run: |
+          bash scripts/session-start.sh
+          bash scripts/dev-gate.sh
+          bash scripts/qa-gate.sh
+          bash scripts/release-gate.sh
+          godot --headless --path . --quit
+          godot --headless --path . --scene res://scenes/PrototypeMain.tscn --quit-after 5
+          godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd
+          godot --headless --path . --script res://tests/runtime/story_002_runtime_check.gd
+
+      - name: Compute next version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          latest_tag="$(git tag --list 'v*' --sort=-version:refname | head -n 1)"
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
+
+          version="${latest_tag#v}"
+          IFS='.' read -r major minor patch <<EOF
+          $version
+          EOF
+
+          case "${{ inputs.release_type }}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+            *)
+              echo "Unsupported release type: ${{ inputs.release_type }}" >&2
+              exit 1
+              ;;
+          esac
+
+          next_tag="v${major}.${minor}.${patch}"
+          echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+          echo "next_tag=$next_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag
+        env:
+          NEXT_TAG: ${{ steps.version.outputs.next_tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$NEXT_TAG" -m "Release $NEXT_TAG"
+          git push origin "$NEXT_TAG"
+
+      - name: Publish GitHub release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NEXT_TAG: ${{ steps.version.outputs.next_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          prerelease_flag=""
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            prerelease_flag="--prerelease"
+          fi
+
+          gh release create "$NEXT_TAG" \
+            --title "$NEXT_TAG" \
+            --generate-notes \
+            $prerelease_flag
