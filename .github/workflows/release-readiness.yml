@@ -1,0 +1,30 @@
+name: Release Readiness
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot
+        uses: firebelley/setup-godot@v2
+        with:
+          version: 4.6.2
+          use-dotnet: false
+
+      - name: Verify release gates
+        run: |
+          bash scripts/dev-gate.sh
+          bash scripts/qa-gate.sh
+          bash scripts/release-gate.sh
+          godot --headless --path . --quit
+          godot --headless --path . --scene res://scenes/PrototypeMain.tscn --quit-after 5
+          godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd

@@ -45,6 +45,11 @@ includes:
 - `production/qa/test-evidence/story-001-magnetic-crate-pull.md`
 - `production/qa/smoke-2026-04-13.md`
 
+## GitHub Automation
+
+This repo now includes GitHub Actions for Godot headless validation and
+tag-triggered release readiness. See `docs/GITHUB-SETUP.md`.
+
 ## Notes
 
 - The prototype focuses on grid-authoritative beam logic, not art polish.

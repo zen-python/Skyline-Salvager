@@ -126,6 +126,16 @@ bash scripts/release-gate.sh
 See `docs/AUTOMATION.md` for the wrapper layer around the manual scripts.
 These wrappers are intentionally simple and read-only.
 
+## GitHub CI
+
+The repository includes baseline GitHub workflows for this prototype:
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/release-readiness.yml`
+
+See `docs/GITHUB-SETUP.md` for branch protection recommendations, required
+checks, and the release-tag process.
+
 ## Recommended Project Layout
 
 When you copy this operating layer into a real game project, keep the original

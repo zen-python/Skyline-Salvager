@@ -1,0 +1,40 @@
+name: Skyline CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot
+        uses: firebelley/setup-godot@v2
+        with:
+          version: 4.6.2
+          use-dotnet: false
+
+      - name: Verify Godot version
+        run: godot --version
+
+      - name: Run shell gate scripts
+        run: |
+          bash scripts/session-start.sh
+          bash scripts/dev-gate.sh
+          bash scripts/qa-gate.sh
+          bash scripts/release-gate.sh
+
+      - name: Headless project boot
+        run: godot --headless --path . --quit
+
+      - name: Headless prototype boot
+        run: godot --headless --path . --scene res://scenes/PrototypeMain.tscn --quit-after 5
+
+      - name: Story 001 runtime check
+        run: godot --headless --path . --script res://tests/runtime/story_001_runtime_check.gd
