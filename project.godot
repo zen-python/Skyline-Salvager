@@ -1,0 +1,24 @@
+; Engine configuration file.
+; It is best edited using the Godot editor.
+;
+; Format:
+;   [section]
+;   param=value
+
+config_version=5
+
+[application]
+
+config/name="Skyline Salvager"
+run/main_scene="res://scenes/PrototypeMain.tscn"
+config/features=PackedStringArray("4.6")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
